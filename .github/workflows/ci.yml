@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # uv.lock 里的包源固定为阿里云镜像，这里保持一致，
+  # 否则 uv 会认为锁文件过期而重新解析。
+  UV_DEFAULT_INDEX: https://mirrors.aliyun.com/pypi/simple/
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 声明的最低版本
+          - os: ubuntu-latest
+            python: "3.9"
+          - os: ubuntu-latest
+            python: "3.13"
+          # Windows 是主要目标平台（run.bat / 单文件版）
+          - os: windows-latest
+            python: "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+
+      - name: 同步依赖
+        run: uv sync
+
+      - name: 语法检查
+        run: uv run --no-sync python -m compileall -q src main.py build_standalone.py
+
+      - name: 导入检查
+        run: >-
+          uv run --no-sync python -c "import vidgrab, vidgrab.cli, vidgrab.config,
+          vidgrab.core, vidgrab.ui; print('import ok', vidgrab.__version__)"
+
+      - name: CLI 冒烟测试
+        shell: bash
+        run: |
+          uv run --no-sync python main.py --version
+          uv run --no-sync python main.py --help > /dev/null
+          uv run --no-sync python main.py --list-sites > /dev/null
+
+      - name: 单文件版与源码是否同步
+        run: uv run --no-sync python build_standalone.py --check
