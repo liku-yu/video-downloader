@@ -1,0 +1,16 @@
+# 默认由 git 自动处理换行
+* text=auto
+
+# Windows 批处理必须用 CRLF，否则 cmd.exe 可能出错
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 其它文本统一 LF
+*.py   text eol=lf
+*.md   text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+*.txt  text eol=lf
+
+# 二进制
+*.pyz binary
