@@ -1,6 +1,7 @@
 # vidgrab · 跨平台视频下载器（Windows）
 
 [![CI](https://github.com/liku-yu/video-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/liku-yu/video-downloader/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/liku-yu/video-downloader)](https://github.com/liku-yu/video-downloader/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.13-blue.svg)](pyproject.toml)
 [![Powered by yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-red.svg)](https://github.com/yt-dlp/yt-dlp)
@@ -17,6 +18,8 @@
 |---|---|---|
 | 需要复制 | `run.bat` + `main.py` + `pyproject.toml` + `uv.lock` + `src/` | **只需 `vidgrab-standalone.bat`** |
 | 适合 | 长期使用、想改代码 | 快速试用、发给别人 |
+
+> 单文件版可直接从 [**Releases**](https://github.com/liku-yu/video-downloader/releases/latest) 下载，不用克隆仓库。
 
 - 双击 → 自动装 uv → 同步依赖 → 打开菜单。首次需联网下载约 40 MB，之后秒开；
 - 把 `urls.txt` 拖到 bat 上 → 按该文件内容批量下载；
