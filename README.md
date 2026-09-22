@@ -133,7 +133,8 @@ video-downloader/
 ├─ pyproject.toml / uv.lock # 依赖声明与版本锁定
 ├─ urls.txt                 # 批量下载清单
 ├─ LICENSE                  # MIT
-├─ .github/workflows/ci.yml # CI：语法 / 导入 / CLI 冒烟 / 单文件版同步校验
+├─ .github/workflows/ci.yml # CI：语法 / 导入 / 冒烟 / 单文件版同步校验
+├─ tests/smoke.py           # 冒烟测试（不联网、无需 pytest）
 └─ src/vidgrab/
    ├─ cli.py                # 命令行参数 + 交互菜单
    ├─ core.py               # 下载核心（yt-dlp 选项、进度、批量调度）
@@ -149,6 +150,12 @@ video-downloader/
 uv sync --extra ffmpeg      :: 建环境
 uv run python main.py -h    :: 运行
 uv lock --upgrade           :: 升级依赖（含 yt-dlp 内核，建议定期执行）
+uv run python tests/smoke.py              :: 冒烟测试（CI 同款）
 uv run python build_standalone.py         :: 改完源码后重新生成单文件版
 uv run python build_standalone.py --check :: 校验单文件版是否与源码同步（CI 同款）
 ```
+
+改完源码别忘了重新生成单文件版；`--check` 会在产物过期时非零退出。
+
+支持的 Python 版本为 **3.9+**，CI 会在 3.9 与 3.13 上分别验证（注意：
+**多行表达式不能写进 f-string 的 `{}` 里**，那是 3.12+ 才有的语法）。

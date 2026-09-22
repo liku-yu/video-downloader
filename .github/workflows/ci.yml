@@ -51,6 +51,9 @@ jobs:
           uv run --no-sync python -c "import vidgrab, vidgrab.cli, vidgrab.config,
           vidgrab.core, vidgrab.ui; print('import ok', vidgrab.__version__)"
 
+      - name: 冒烟测试
+        run: uv run --no-sync python tests/smoke.py
+
       - name: CLI 冒烟测试
         shell: bash
         run: |
