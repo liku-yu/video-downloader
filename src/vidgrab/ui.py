@@ -290,8 +290,12 @@ def choose(prompt: str, options: Sequence[tuple[str, str]], default: int = 1,
         mark = green(_s("▸", ">")) if i == default else " "
         say(f"  {mark} {bold(str(i))}. {label}")
     if quit_token:
-        say(f"    {dim(_s('（输入 0 或 q 可退出 / 取消，不下载任何内容）',
-                          '(0 or q to quit/cancel)'))}")
+        # 注意：_s(...) 必须提到 f-string 外面。
+        # 把多行表达式写在 {} 里是 Python 3.12（PEP 701）才允许的语法，
+        # 3.9~3.11 会报 "EOL while scanning string literal"。
+        hint = _s("（输入 0 或 q 可退出 / 取消，不下载任何内容）",
+                  "(0 or q to quit/cancel)")
+        say(f"    {dim(hint)}")
     while True:
         raw = ask(prompt, str(default)).strip().lower()
         if quit_token and raw in ("0", "q", "quit", "exit", "退出", "取消"):
