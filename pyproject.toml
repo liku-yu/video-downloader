@@ -1,0 +1,42 @@
+[project]
+name = "vidgrab"
+version = "1.0.0"
+description = "跨平台视频下载器：基于 yt-dlp 内核，支持 1800+ 站点的视频/音频/字幕下载"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "yt-dlp[default]>=2025.1.15",
+    # yt-dlp 的 default extras 在 Python 3.14+ 上不含 curl_cffi，
+    # 而 --impersonate（反爬）需要它，这里显式补上。
+    "curl_cffi>=0.5.10,<0.17; python_version >= '3.14'",
+]
+
+[project.optional-dependencies]
+# 零配置获取 ffmpeg（用于合并音视频流、转码）
+ffmpeg = ["imageio-ffmpeg>=0.5.1"]
+
+[project.scripts]
+vidgrab = "vidgrab.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vidgrab"]
+
+[tool.uv]
+package = true
+
+# ---------------------------------------------------------------
+# 依赖索引源不在此写死，交给 run.bat 通过 UV_DEFAULT_INDEX 环境变量指定。
+#
+# 为什么默认不用官方源：
+#   本机实测 pypi.org 被解析到 fake-ip 198.18.0.4（出口经透明代理），
+#   索引页下载速度仅 ~15 KB/s，同步同样的依赖要 10 分钟以上；
+#   而阿里云镜像 ~1.6 MB/s，1 秒内完成。
+#
+# 想强制使用官方源：
+#   · Windows 下取消 run.bat 里 "set UV_DEFAULT_INDEX=https://pypi.org/simple" 的注释
+#   · 或直接删除环境变量后执行 uv sync（uv 会回落到 pypi.org）
+# ---------------------------------------------------------------

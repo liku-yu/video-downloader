@@ -1,0 +1,20 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# vidgrab 运行时产物
+*.pyz
+downloads/
+*.part
+.vidgrab-archive.txt
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
