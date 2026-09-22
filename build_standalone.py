@@ -16,11 +16,13 @@
 from __future__ import annotations
 
 import base64
+import io
 import re
 import shutil
 import tempfile
 import textwrap
 import zipapp
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -231,6 +233,73 @@ exit /b %RC%
 """
 
 
+def _ignored(name: str) -> bool:
+    return (name.endswith("/")                      # 目录条目
+            or name.endswith((".pyc", ".pyo"))
+            or "__pycache__" in name)
+
+
+def extract_payload_pyz(bat_path: Path) -> bytes:
+    """从已生成的 .bat 里还原出内嵌的 .pyz（与 .bat 运行时的逻辑一致）。"""
+    lines = bat_path.read_text(encoding="utf-8").replace("\r\n", "\n").split("\n")
+    marks = [i for i, l in enumerate(lines) if l == PAYLOAD_MARK]
+    if len(marks) != 1:
+        raise ValueError(f"载荷标记行数量异常：{len(marks)}（应为 1）")
+    b64 = "".join(l.strip() for l in lines[marks[0] + 1:] if l.strip())
+    if not b64:
+        raise ValueError("载荷为空")
+    return base64.b64decode(b64)
+
+
+def expected_sources() -> dict[str, bytes]:
+    """当前源码应在 .pyz 里对应的 {归档内路径: 字节}。"""
+    out: dict[str, bytes] = {}
+    for f in sorted(PKG_DIR.rglob("*.py")):
+        out["vidgrab/" + f.relative_to(PKG_DIR).as_posix()] = f.read_bytes()
+    out["__main__.py"] = MAIN_PY.encode("utf-8")
+    return out
+
+
+def _norm(data: bytes) -> bytes:
+    """归一化换行：zipapp 在不同平台写出的 __main__.py 行尾不同，
+    这属于构建环境差异而非「源码变更」，比对时必须忽略。"""
+    return data.replace(b"\r\n", b"\n")
+
+
+def check_current() -> int:
+    """校验「已提交的单文件版」是否与当前源码同步（CI / 提交前自检用）。"""
+    if not OUT_BAT.exists():
+        print(f"x 找不到 {OUT_BAT.name}，请先运行：uv run python build_standalone.py")
+        return 1
+    try:
+        pyz = extract_payload_pyz(OUT_BAT)
+    except Exception as exc:  # noqa: BLE001
+        print(f"x 无法从 {OUT_BAT.name} 还原载荷：{exc}")
+        return 1
+
+    with zipfile.ZipFile(io.BytesIO(pyz)) as zf:
+        packed = {n: zf.read(n) for n in zf.namelist() if not _ignored(n)}
+
+    want = expected_sources()
+    problems: list[str] = []
+    for name, data in sorted(want.items()):
+        if name not in packed:
+            problems.append(f"缺失   {name}")
+        elif _norm(packed[name]) != _norm(data):
+            problems.append(f"已过期 {name}")
+    for name in sorted(set(packed) - set(want)):
+        problems.append(f"多余   {name}")
+
+    if problems:
+        print(f"x {OUT_BAT.name} 与当前源码不一致，请重新生成：uv run python build_standalone.py")
+        for p in problems:
+            print("   ", p)
+        return 1
+
+    print(f"OK {OUT_BAT.name} 与当前源码一致（{len(want)} 个文件）")
+    return 0
+
+
 def main() -> None:
     version = read_version()
     pyz = build_pyz()
@@ -274,4 +343,19 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import argparse
+    import sys
+
+    for _stream in (sys.stdout, sys.stderr):   # Windows 控制台默认 GBK，中文会乱码
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+    _ap = argparse.ArgumentParser(description="生成 / 校验 vidgrab 单文件版")
+    _ap.add_argument("--check", action="store_true",
+                     help="只校验已提交的 .bat 是否与当前源码一致，不重新生成")
+    _args = _ap.parse_args()
+    if _args.check:
+        raise SystemExit(check_current())
     main()
