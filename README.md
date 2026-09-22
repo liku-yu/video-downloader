@@ -1,5 +1,10 @@
 # vidgrab · 跨平台视频下载器（Windows）
 
+[![CI](https://github.com/liku-yu/video-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/liku-yu/video-downloader/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%20%7C%203.13-blue.svg)](pyproject.toml)
+[![Powered by yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-red.svg)](https://github.com/yt-dlp/yt-dlp)
+
 基于 [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) 内核的视频 / 音频 / 字幕下载工具，
 内置 **1751 个站点**解析器，用 [`uv`](https://docs.astral.sh/uv/) 管理依赖，**双击 `run.bat` 即用**。
 
@@ -123,10 +128,12 @@ rem set "UV_DEFAULT_INDEX=https://pypi.org/simple"
 video-downloader/
 ├─ run.bat                  # 【方式A】双击启动：装 uv + 同步依赖 + 打开菜单
 ├─ vidgrab-standalone.bat   # 【方式B】单文件版，可单独复制使用
-├─ build_standalone.py      # 生成上面那个单文件 bat
+├─ build_standalone.py      # 生成上面那个单文件 bat，--check 可校验其是否与源码同步
 ├─ main.py                  # 运行入口
 ├─ pyproject.toml / uv.lock # 依赖声明与版本锁定
 ├─ urls.txt                 # 批量下载清单
+├─ LICENSE                  # MIT
+├─ .github/workflows/ci.yml # CI：语法 / 导入 / CLI 冒烟 / 单文件版同步校验
 └─ src/vidgrab/
    ├─ cli.py                # 命令行参数 + 交互菜单
    ├─ core.py               # 下载核心（yt-dlp 选项、进度、批量调度）
@@ -142,4 +149,6 @@ video-downloader/
 uv sync --extra ffmpeg      :: 建环境
 uv run python main.py -h    :: 运行
 uv lock --upgrade           :: 升级依赖（含 yt-dlp 内核，建议定期执行）
+uv run python build_standalone.py         :: 改完源码后重新生成单文件版
+uv run python build_standalone.py --check :: 校验单文件版是否与源码同步（CI 同款）
 ```
