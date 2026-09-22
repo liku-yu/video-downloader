@@ -108,6 +108,17 @@ uv run python main.py --cookies-from-browser chrome "<链接>"      :: 登录态
 rem set "UV_DEFAULT_INDEX=https://pypi.org/simple"
 ```
 
+> ⚠️ **锁文件与镜像源是绑定的**：`uv.lock` 会记录每个包是从哪个索引解析来的，
+> 当前锁文件里的 888 处引用全部指向阿里云镜像。因此在用**官方源**的环境里执行
+> `uv sync` 时，uv 会判定锁文件过期并重新解析（`uv.lock` 会被改写、`git status` 变脏）。
+>
+> 想让仓库默认走官方源（例如主要面向海外用户），执行下面这条重新生成锁文件，
+> 并把 `run.bat` / 单文件版里的 `UV_DEFAULT_INDEX` 默认值改成官方源：
+>
+> ```bat
+> uv lock --default-index https://pypi.org/simple
+> ```
+
 ## 七、常见问题
 
 | 现象 | 处理 |
